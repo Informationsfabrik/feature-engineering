@@ -1,0 +1,104 @@
+## Results from experiment
+
+### Libraries
+```{r, message=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(stringr)
+
+```
+
+
+### Load data
+```{r}
+
+df <- read.csv("../../results/model_metrics.csv") %>% 
+  select(-X) %>% 
+  mutate(seed = as.factor(seed))
+
+df %>% head
+
+df %>% summary
+
+```
+
+### Pre-process data
+```{r}
+
+df_prep <-
+  df %>% 
+  # extract information from 'algorithm' field
+  mutate(method = word(algorithm, 1, sep = "_")) %>% 
+  mutate(base = grepl("_base", algorithm)) %>% 
+  mutate(selection = grepl("_selection", algorithm)) %>% 
+  mutate(base_selection = grepl("_base_selection", algorithm)) %>% 
+  # re-order factor levels
+  mutate(method = factor(method, levels = c("base",
+                                            "manual",
+                                            "featuretools",
+                                            "tsfresh",
+                                            "tpot")))
+
+df_prep %>% 
+  select(algorithm, base, selection, base_selection) %>% 
+  unique
+
+```
+
+
+### Compare feature importance
+```{r fig.height=6, fig.width=8}
+
+# compare core-methods
+df_prep %>% 
+  filter(base == FALSE, selection == FALSE) %>% 
+  # plot
+  ggplot(aes(x = method, y = rmse)) +
+  geom_boxplot(aes(color = method)) +
+  # plot style
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        text = element_text(size = 18)) +
+  ylab("error (RMSE)")
+
+# compare methods with and without adding base features in the end
+df_prep %>%
+  filter(selection == FALSE) %>% 
+  # plot
+  ggplot(aes(x = method, y = rmse)) +
+  geom_boxplot(aes(fill = base)) +
+  # plot style
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        text = element_text(size = 18)) +
+  ylab("error (RMSE)")
+
+# compare methods with and without feature selection
+df_prep %>% 
+  filter(base == FALSE) %>% 
+  # plot
+  ggplot(aes(x = method, y = rmse)) +
+  geom_boxplot(aes(fill = selection)) +
+  # plot style
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        text = element_text(size = 18)) +
+  ylab("error (RMSE)")
+
+# comparing all variants
+df_prep %>% 
+  mutate(algorithm = gsub("_", " + ", algorithm)) %>% 
+  mutate(algorithm = fct_reorder(algorithm, -rmse)) %>%
+  # plot
+  ggplot(aes(x = algorithm, y = rmse)) +
+  geom_boxplot(aes(color = method)) +
+  # plot style
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1),
+        text = element_text(size = 16)) +
+  ylab("Error (RMSE)") +
+  xlab("method + variant")
+
+```

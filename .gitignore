@@ -1,0 +1,26 @@
+# IDEs
+.idea/
+scripts/__pycache__/
+feature_engineering/__pycache__/
+**/__pycache__
+/.vscode/
+
+# data
+data/*
+!data/input/
+
+# python
+__pycache__
+
+!*.gitkeep
+
+# Dev Env
+.devcontainer
+docker-compose.remote.yml
+docker-compose.yml
+Dockerfile
+environment.dev.yml
+
+# R
+.Rproj.user
+*.Rproj

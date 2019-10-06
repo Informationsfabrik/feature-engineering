@@ -1,0 +1,24 @@
+name: ccai-feature-engineering
+
+dependencies:
+  - python=3.7
+  - pip:
+    - pandas~=0.23.0
+    - numpy
+    - scikit-learn
+    - scipy
+    - pyarrow
+    - seaborn
+    - plotnine
+    - plydata
+    - featuretools
+    - tsfresh
+    - tpot
+    - xgboost
+    - dvc
+    - azure-storage-blob
+    # development
+    - black
+    - jupyter
+    - flake8
+    - black

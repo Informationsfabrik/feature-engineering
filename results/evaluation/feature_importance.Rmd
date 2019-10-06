@@ -1,0 +1,133 @@
+---
+title: "Feauture evaluation"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Libraries
+```{r message=FALSE}
+
+require(ggplot2)
+require(dplyr)
+require(forcats)
+library(stringr)
+
+```
+
+## Loading data
+```{r loading}
+
+fi <- read.csv("../feature_importance.csv", ) %>% 
+  select(-X)
+
+```
+
+## Preprocessing
+```{r preprocessing}
+
+fi_prep <-
+  fi %>% 
+  # extract information from 'algorithm' field
+  mutate(method = word(algorithm, 1, sep = "_")) %>% 
+  mutate(base = grepl("_base", algorithm)) %>% 
+  mutate(selection = grepl("_selection", algorithm)) %>% 
+  # count the features per algorithm and seed
+  group_by(algorithm, seed) %>% 
+  mutate(n_features = n()) %>% 
+  ungroup() %>% 
+  # count the minimum number of features, per algorithm
+  group_by(algorithm) %>% 
+  mutate(min_n_features = min(n_features)) %>% 
+  ungroup() %>% 
+  # renaming for plots
+  mutate(feature = gsub("relation", "", feature))
+
+print("Numbers of features per algorithm:")
+fi_prep %>% 
+  select(algorithm, min_n_features) %>% 
+  unique() %>% 
+  print()
+
+fi_prep %>% 
+  glimpse
+
+```
+
+## Normalize information gain to %
+```{r}
+
+# TODO
+
+```
+
+
+## Plotting feature importance
+```{r plotting, fig.height=3, fig.width=5}
+
+for (algo in unique(fi$algorithm)) {
+  
+  # get most important features for algorithm
+  top_features <-
+    fi_prep %>% 
+    filter(algorithm == algo) %>% 
+    group_by(feature) %>%
+    summarise(median_information_gain = median(information_gain)) %>%
+    arrange(desc(median_information_gain)) %>% 
+    head(5) %>% 
+    pull(feature)
+
+  p <- 
+    fi_prep %>% 
+    # data preparation
+    filter(algorithm == algo) %>% 
+    filter(feature %in% top_features) %>%  # only top 10 features
+    mutate(feature = reorder(feature, information_gain, median)) %>%  # order factor levels 
+    # plot
+    ggplot(aes(x = feature, y = information_gain)) +
+    geom_boxplot() +
+    coord_flip() +
+    # plot style
+    theme_bw() +
+    theme(text = element_text(size = 12)) +
+    ggtitle(gsub("_", " + ", algo)) +
+    ylab("importance (information gain)") +
+    xlab("")
+  
+  print(p)
+}
+
+```
+
+
+
+```{r}
+# # Retrieve all algorithms
+# algorithms <- unique(feature_importance$algorithm)
+# # Retrieve all seeds
+# seeds <- unique(feature_importance$seed)
+# 
+# for(algorithm in algorithms){
+# 
+#   df <- feature_importance[feature_importance$algorithm == algorithm,]
+#   df$mean_feat_imp = 0
+#   
+#   range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+# 
+#   df$information_gain = range01(df$information_gain)
+#   
+#   features <- unique(df$feature)
+#   
+#   for(feat in features){
+#     df[df$feature==feat,]$mean_feat_imp = mean(df[df$feature==feat, "information_gain"])  
+#   }
+#   
+#   df <- arrange(df, desc(mean_feat_imp), feature)
+#   len <- length(seeds)*10
+#   df <- df[1:len,]
+#   
+#   print(ggplot(data = df, mapping=aes(x=information_gain, y=fct_reorder(feature, mean_feat_imp))) +
+#     geom_point(colour = df$seed))
+# }
+
+```
