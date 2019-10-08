@@ -13,7 +13,7 @@ The provided python code, contained in the ``scripts/`` directory is based on th
 
 All libraries are tested by using their recommended default settings. If you wish to adjust these you can do this for each library in the corresponding configuration file in the ``feature_engineering/`` directory. Furthermore, you are able to adjust the general experiment parameters.
 
-![](design_of_experiment.png)
+![](design_of_experiment.PNG)
 
 Figure 1: *Design of Experiment*
 
